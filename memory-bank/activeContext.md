@@ -14,4 +14,5 @@ Implementing the validation MVP:
 - If/when moderation tooling becomes necessary
 - Whether to adopt an English profanity wordlist (e.g. LDNOOBW) and upgrade filtering to word-boundary + normalization to reduce false positives
 - Handle/share detection strictness: consider relaxing so it only blocks when there is clear "contact intent" language (e.g. "add me", "dm me", "my ig is"), to reduce false positives while still preventing off-platform contact sharing
+- Consider adding lightweight “why blocked?” messaging (e.g. link vs handle vs banned word) so testers understand what happened without revealing detection details
 
