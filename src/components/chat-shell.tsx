@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ConnectionStatus } from "@/components/connection-status";
 import { MessageInput } from "@/components/message-input";
@@ -14,6 +14,19 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const isNearBottom = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    return distanceFromBottom < 120;
+  };
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -32,10 +45,12 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
 
     const onNewMessage = (payload: NewMessagePayload) => {
       const msg = payload.message;
+      const shouldStick = isNearBottom();
       setMessages((prev) => {
         const next = [...prev, msg];
         return next.slice(-50);
       });
+      if (shouldStick) scrollToBottom();
     };
 
     const onError = (payload: ChatErrorPayload) => {
@@ -58,6 +73,12 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
       socket.off(SOCKET_EVENTS.error, onError);
     };
   }, [props.guestId, socket]);
+
+  useEffect(() => {
+    // On first load (bootstrap), scroll to bottom once messages are rendered.
+    if (messages.length === 0) return;
+    scrollToBottom();
+  }, [messages.length]);
 
   return (
     <div className="flex h-[100dvh] flex-col">
@@ -83,8 +104,12 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-4 py-4">
+      <main
+        ref={scrollContainerRef}
+        className="mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-4 py-4"
+      >
         <MessageList messages={messages} guestId={props.guestId} />
+        <div ref={bottomRef} />
       </main>
 
       <footer className="border-t border-white/10 bg-black/50">
