@@ -12,14 +12,14 @@ export function MessageList(props: { messages: ChatMessage[]; guestId: string })
             <div
               className={[
                 "max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm",
-                mine ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-900",
+                mine ? "bg-white/15 text-white" : "bg-white/5 text-white",
               ].join(" ")}
             >
               <div className="flex items-baseline justify-between gap-3">
-                <span className={`text-xs ${mine ? "text-white/70" : "text-zinc-500"}`}>
+                <span className={`text-xs ${mine ? "text-white/80" : "text-white/60"}`}>
                   {m.guestId}
                 </span>
-                <span className={`text-[11px] ${mine ? "text-white/60" : "text-zinc-400"}`}>
+                <span className={`text-[11px] ${mine ? "text-white/60" : "text-white/45"}`}>
                   {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>

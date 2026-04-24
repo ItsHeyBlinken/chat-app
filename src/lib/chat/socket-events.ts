@@ -11,12 +11,13 @@ export type ChatErrorCode = "INVALID_MESSAGE" | "RATE_LIMITED" | "NOT_AGE_CONFIR
 export type ChatMessage = {
   id: string;
   guestId: string;
+  topic: string;
   text: string;
   createdAt: string;
 };
 
-export type JoinPayload = { guestId: string };
-export type SendMessagePayload = { guestId: string; text: string };
+export type JoinPayload = { guestId: string; topic: string };
+export type SendMessagePayload = { guestId: string; topic: string; text: string };
 export type BootstrapPayload = { messages: ChatMessage[] };
 export type NewMessagePayload = { message: ChatMessage };
 export type ChatErrorPayload = { code: ChatErrorCode; message: string };

@@ -8,8 +8,9 @@ import { MessageList } from "@/components/message-list";
 import { disconnectSocket, getSocket } from "@/lib/chat/socket-client";
 import { SOCKET_EVENTS } from "@/lib/chat/socket-events";
 import type { BootstrapPayload, ChatErrorPayload, ChatMessage, NewMessagePayload } from "@/lib/chat/socket-events";
+import { TOPICS } from "@/lib/topics";
 
-export function ChatShell(props: { guestId: string; onLogout: () => void }) {
+export function ChatShell(props: { guestId: string; topic: string; onChangeTopic: () => void; onLogout: () => void }) {
   const socket = useMemo(() => getSocket(), []);
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -34,7 +35,7 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
     const onConnect = () => {
       setStatus("connected");
       setError(null);
-      socket.emit(SOCKET_EVENTS.join, { guestId: props.guestId });
+      socket.emit(SOCKET_EVENTS.join, { guestId: props.guestId, topic: props.topic });
     };
 
     const onDisconnect = () => setStatus("disconnected");
@@ -45,6 +46,7 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
 
     const onNewMessage = (payload: NewMessagePayload) => {
       const msg = payload.message;
+      if (msg.topic !== props.topic) return;
       const shouldStick = isNearBottom();
       setMessages((prev) => {
         const next = [...prev, msg];
@@ -72,7 +74,7 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
       socket.off(SOCKET_EVENTS.newMessage, onNewMessage);
       socket.off(SOCKET_EVENTS.error, onError);
     };
-  }, [props.guestId, socket]);
+  }, [props.guestId, props.topic, socket]);
 
   useEffect(() => {
     // On first load (bootstrap), scroll to bottom once messages are rendered.
@@ -85,11 +87,23 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
       <header className="sticky top-0 z-10 border-b border-white/10 bg-black/50 backdrop-blur">
         <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold">Global chat</div>
+            <div className="truncate text-sm font-semibold">
+              {TOPICS.find((t) => t.slug === props.topic)?.name ?? "Chat"}
+            </div>
             <div className="truncate text-xs text-white/60">You are {props.guestId}</div>
           </div>
           <div className="flex items-center gap-2">
             <ConnectionStatus status={status} />
+            <button
+              type="button"
+              className="h-8 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-medium text-white/80 hover:bg-white/10"
+              onClick={() => {
+                disconnectSocket();
+                props.onChangeTopic();
+              }}
+            >
+              Topics
+            </button>
             <button
               type="button"
               className="h-8 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-medium text-white/80 hover:bg-white/10"
@@ -119,7 +133,7 @@ export function ChatShell(props: { guestId: string; onLogout: () => void }) {
             disabled={status !== "connected"}
             onSend={(text) => {
               setError(null);
-              socket?.emit(SOCKET_EVENTS.sendMessage, { guestId: props.guestId, text });
+              socket?.emit(SOCKET_EVENTS.sendMessage, { guestId: props.guestId, topic: props.topic, text });
             }}
           />
         </div>
