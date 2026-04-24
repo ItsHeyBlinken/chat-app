@@ -6,7 +6,8 @@
     "dev": "tsx server.ts",
     "build": "cross-env NODE_ENV=production next build",
     "start": "tsx server.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prune:messages": "node scripts/prune-messages.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
