@@ -13,4 +13,5 @@ Implementing the validation MVP:
 - Whether accounts or multi-room are needed
 - If/when moderation tooling becomes necessary
 - Whether to adopt an English profanity wordlist (e.g. LDNOOBW) and upgrade filtering to word-boundary + normalization to reduce false positives
+- Handle/share detection strictness: consider relaxing so it only blocks when there is clear "contact intent" language (e.g. "add me", "dm me", "my ig is"), to reduce false positives while still preventing off-platform contact sharing
 
