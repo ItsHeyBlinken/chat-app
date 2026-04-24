@@ -10,3 +10,16 @@
 - Configure `DATABASE_URL` in `.env.local` (see `.env.example`)
 - Run schema in `db/schema.sql` against your Postgres instance
 
+## Topics (DB slugs)
+These values are used as `messages.topic_slug`:
+- `tech`
+- `gaming`
+- `fitness`
+- `dating`
+- `money`
+- `adult`
+- `random`
+
+## Ex.
+## DELETE FROM public.messages
+## WHERE topic_slug = 'gaming';
