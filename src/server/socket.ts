@@ -18,7 +18,7 @@ import {
 } from "@/lib/chat/message-validation";
 import { createRateLimiter } from "@/lib/chat/rate-limit";
 import { getRecentMessages, insertMessage } from "@/lib/messages";
-import { DEFAULT_TOPIC_SLUG, isValidTopicSlug } from "@/lib/topics";
+import { DEFAULT_TOPIC_SLUG, getTopicBySlug, isValidTopicSlug } from "@/lib/topics";
 
 const RECENT_MESSAGES_LIMIT = 50;
 const MIN_MESSAGE_INTERVAL_MS = 1200;
@@ -174,7 +174,10 @@ export function registerSocketServer(server: HttpServer) {
         return;
       }
 
-      if (bannedWords.length > 0 && containsBannedWord(validation.text, bannedWords)) {
+      const topicPolicy = getTopicBySlug(topic);
+      const bannedWordsEnabled = topicPolicy?.bannedWordsEnabled ?? true;
+
+      if (bannedWordsEnabled && bannedWords.length > 0 && containsBannedWord(validation.text, bannedWords)) {
         applyViolation(payload.guestId, socket);
         return;
       }
