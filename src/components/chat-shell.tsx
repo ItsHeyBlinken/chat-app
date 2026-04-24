@@ -32,6 +32,10 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
   useEffect(() => {
     if (!socket) return;
 
+    const disconnect = () => disconnectSocket();
+    window.addEventListener("pagehide", disconnect);
+    window.addEventListener("beforeunload", disconnect);
+
     const onConnect = () => {
       setStatus("connected");
       setError(null);
@@ -68,6 +72,8 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
     if (socket.connected) onConnect();
 
     return () => {
+      window.removeEventListener("pagehide", disconnect);
+      window.removeEventListener("beforeunload", disconnect);
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off(SOCKET_EVENTS.bootstrap, onBootstrap);

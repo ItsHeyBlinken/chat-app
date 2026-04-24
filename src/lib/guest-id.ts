@@ -13,16 +13,16 @@ export function generateGuestId() {
 export function getOrCreateGuestId() {
   if (typeof window === "undefined") return null;
 
-  const existing = window.localStorage.getItem(GUEST_ID_STORAGE_KEY);
+  const existing = window.sessionStorage.getItem(GUEST_ID_STORAGE_KEY);
   if (existing) return existing;
 
   const next = generateGuestId();
-  window.localStorage.setItem(GUEST_ID_STORAGE_KEY, next);
+  window.sessionStorage.setItem(GUEST_ID_STORAGE_KEY, next);
   return next;
 }
 
 export function clearGuestId() {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(GUEST_ID_STORAGE_KEY);
+  window.sessionStorage.removeItem(GUEST_ID_STORAGE_KEY);
 }
 
