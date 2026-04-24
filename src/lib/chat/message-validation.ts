@@ -17,7 +17,20 @@ export function validateMessageText(input: string): MessageValidationResult {
 
 export function containsBannedWord(text: string, bannedWords: string[]) {
   const lowered = text.toLowerCase();
-  return bannedWords.some((w) => lowered.includes(w.toLowerCase()));
+
+  // Match whole words only to reduce false positives (e.g. "jiggle").
+  // We also normalize common "word separators" so punctuation doesn't bypass matching.
+  const normalized = lowered.replace(/[^a-z0-9]+/g, " ");
+
+  const escaped = bannedWords
+    .map((w) => w.trim().toLowerCase())
+    .filter(Boolean)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+
+  if (escaped.length === 0) return false;
+
+  const re = new RegExp(`\\b(?:${escaped.join("|")})\\b`, "i");
+  return re.test(normalized);
 }
 
 function normalizeForLinkScan(input: string) {
