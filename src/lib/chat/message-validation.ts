@@ -102,16 +102,20 @@ export function containsHandleShareText(text: string, extraKeywords: string[] = 
     "wechat",
     "tiktok",
     "twitter",
-    "x",
     "facebook",
     "fb",
     "reddit",
     "onlyfans",
-    "of",
   ];
 
   const keywords = [...new Set([...baseKeywords, ...extraKeywords.map((k) => k.toLowerCase())])];
-  if (keywords.some((k) => raw.includes(k))) {
+  const keywordText = raw.replace(/[^a-z0-9]+/g, " ");
+  const mentionsKeyword = keywords.some((k) => {
+    const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`, "i").test(keywordText);
+  });
+
+  if (mentionsKeyword) {
     // If they mention a platform and include something that looks like a handle / tag / id.
     const looksLikeId = /\b[a-z0-9][a-z0-9_\.]{2,32}\b/i;
     if (looksLikeId.test(normalized)) return true;
