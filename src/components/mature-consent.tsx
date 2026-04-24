@@ -10,7 +10,7 @@ export function MatureConsent(props: { onConfirm: () => void; onBack: () => void
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Mature language warning</h1>
         <p className="text-sm text-white/70">
-          This topic may contain explicit or mature language. Links and social handles are still blocked.
+          This topic may contain explicit language, sexual content, and racial slurs. Links and social handles are still blocked.
         </p>
       </div>
 
@@ -21,7 +21,9 @@ export function MatureConsent(props: { onConfirm: () => void; onBack: () => void
           checked={checked}
           onChange={(e) => setChecked(e.target.checked)}
         />
-        <span className="text-sm text-white/80">I understand and want to enter this topic.</span>
+        <span className="text-sm text-white/80">
+          I understand this topic may include explicit content (including racial slurs) and want to enter.
+        </span>
       </label>
 
       <div className="flex gap-3">
