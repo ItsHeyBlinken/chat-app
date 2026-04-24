@@ -12,4 +12,5 @@ Implementing the validation MVP:
 - Consumer vs B2B vs embeddable direction
 - Whether accounts or multi-room are needed
 - If/when moderation tooling becomes necessary
+- Whether to adopt an English profanity wordlist (e.g. LDNOOBW) and upgrade filtering to word-boundary + normalization to reduce false positives
 

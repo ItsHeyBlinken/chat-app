@@ -17,7 +17,7 @@ export function MessageList(props: { messages: ChatMessage[]; guestId: string })
             >
               <div className="flex items-baseline justify-between gap-3">
                 <span className={`text-xs ${mine ? "text-white/80" : "text-white/60"}`}>
-                  {m.guestId}
+                  {m.guestLabel}
                 </span>
                 <span className={`text-[11px] ${mine ? "text-white/60" : "text-white/45"}`}>
                   {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}

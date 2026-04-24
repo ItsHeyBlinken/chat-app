@@ -20,3 +20,93 @@ export function containsBannedWord(text: string, bannedWords: string[]) {
   return bannedWords.some((w) => lowered.includes(w.toLowerCase()));
 }
 
+function normalizeForLinkScan(input: string) {
+  // Normalize common obfuscations like "dot", "(dot)", "[dot]" and remove obvious separators.
+  return input
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/\(dot\)|\[dot\]|\{dot\}|dot/g, ".")
+    .replace(/，|。|．|｡/g, "."); // common unicode dots
+}
+
+export function containsLinkLikeText(text: string) {
+  const raw = text.toLowerCase();
+  const normalized = normalizeForLinkScan(text);
+
+  // Fast-path checks (avoid expensive regex work for normal chat).
+  if (
+    raw.includes("http://") ||
+    raw.includes("https://") ||
+    raw.includes("www.") ||
+    normalized.includes("www.") ||
+    raw.includes(".com") ||
+    raw.includes(".net") ||
+    raw.includes(".org")
+  ) {
+    return true;
+  }
+
+  // Domain-ish pattern: something.(tld) with optional obfuscation already normalized.
+  // This is intentionally conservative: if it looks like a domain, we block it.
+  const domainLike = /\b[a-z0-9-]{2,}\.[a-z]{2,24}\b/i;
+  if (domainLike.test(normalized)) return true;
+
+  return false;
+}
+
+function normalizeForHandleScan(input: string) {
+  return input
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[_\-]+/g, "_")
+    .trim();
+}
+
+export function containsHandleShareText(text: string, extraKeywords: string[] = []) {
+  const raw = text.toLowerCase();
+  const normalized = normalizeForHandleScan(text);
+
+  // Common "reach me" language
+  const reachMe = /\b(dm me|message me|add me|hit me up|contact me|snap me|text me)\b/i;
+  if (reachMe.test(normalized)) return true;
+
+  // Obvious "@" handle. Allow our own guest IDs (Guest1234) without @, but block @something.
+  const atHandle = /(^|\s)@[a-z0-9_\.]{2,32}\b/i;
+  if (atHandle.test(normalized)) return true;
+
+  // Platform keywords + likely identifier nearby.
+  const baseKeywords = [
+    "discord",
+    "instagram",
+    "insta",
+    "ig",
+    "snap",
+    "snapchat",
+    "telegram",
+    "kik",
+    "whatsapp",
+    "signal",
+    "wechat",
+    "tiktok",
+    "twitter",
+    "x",
+    "facebook",
+    "fb",
+    "reddit",
+    "onlyfans",
+    "of",
+  ];
+
+  const keywords = [...new Set([...baseKeywords, ...extraKeywords.map((k) => k.toLowerCase())])];
+  if (keywords.some((k) => raw.includes(k))) {
+    // If they mention a platform and include something that looks like a handle / tag / id.
+    const looksLikeId = /\b[a-z0-9][a-z0-9_\.]{2,32}\b/i;
+    if (looksLikeId.test(normalized)) return true;
+  }
+
+  // Catch "dot" obfuscations for socials: "insta dot name"
+  if (raw.includes(" dot ") || raw.includes("(dot)") || raw.includes("[dot]")) return true;
+
+  return false;
+}
+

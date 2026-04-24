@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { clearAgeConfirmed, isAgeConfirmed, setAgeConfirmed } from "@/lib/client-session";
-import { clearGuestId, getOrCreateGuestId } from "@/lib/guest-id";
+import { clearGuestId, getOrCreateGuestIdentity } from "@/lib/guest-id";
 import { clearTopicSlug, getTopicSlug, setTopicSlug } from "@/lib/topic-session";
 
 const AgeGate = dynamic(() => import("@/components/age-gate").then((m) => m.AgeGate), {
@@ -21,19 +21,19 @@ const ChatShell = dynamic(() => import("@/components/chat-shell").then((m) => m.
 });
 
 export default function Home() {
-  const [guestId, setGuestId] = useState<string | null>(null);
+  const [guestIdentity, setGuestIdentity] = useState<{ sessionId: string; label: string } | null>(null);
   const [ageOk, setAgeOk] = useState(false);
   const [topic, setTopic] = useState<string | null>(null);
 
   useEffect(() => {
     // We intentionally initialize client-only state after mount to avoid SSR hydration mismatch.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setGuestId(getOrCreateGuestId());
+    setGuestIdentity(getOrCreateGuestIdentity());
     setAgeOk(isAgeConfirmed());
     setTopic(getTopicSlug());
   }, []);
 
-  if (!guestId) {
+  if (!guestIdentity) {
     return (
       <div className="flex flex-1 items-center justify-center bg-black px-6">
         <div className="text-sm text-white/70">Loading…</div>
@@ -73,7 +73,8 @@ export default function Home() {
 
   return (
     <ChatShell
-      guestId={guestId}
+      guestId={guestIdentity.sessionId}
+      guestLabel={guestIdentity.label}
       topic={topic}
       onChangeTopic={() => {
         clearTopicSlug();
@@ -85,7 +86,7 @@ export default function Home() {
         clearTopicSlug();
         setAgeOk(false);
         setTopic(null);
-        setGuestId(getOrCreateGuestId());
+        setGuestIdentity(getOrCreateGuestIdentity());
       }}
     />
   );

@@ -4,21 +4,24 @@ export const SOCKET_EVENTS = {
   bootstrap: "chat:bootstrap",
   newMessage: "chat:new_message",
   error: "chat:error",
+  kicked: "chat:kicked",
 } as const;
 
-export type ChatErrorCode = "INVALID_MESSAGE" | "RATE_LIMITED" | "NOT_AGE_CONFIRMED";
+export type ChatErrorCode = "INVALID_MESSAGE" | "RATE_LIMITED" | "NOT_AGE_CONFIRMED" | "MUTED" | "BANNED";
 
 export type ChatMessage = {
   id: string;
   guestId: string;
+  guestLabel: string;
   topic: string;
   text: string;
   createdAt: string;
 };
 
-export type JoinPayload = { guestId: string; topic: string };
-export type SendMessagePayload = { guestId: string; topic: string; text: string };
+export type JoinPayload = { guestId: string; guestLabel: string; topic: string };
+export type SendMessagePayload = { guestId: string; guestLabel: string; topic: string; text: string };
 export type BootstrapPayload = { messages: ChatMessage[] };
 export type NewMessagePayload = { message: ChatMessage };
 export type ChatErrorPayload = { code: ChatErrorCode; message: string };
+export type KickedPayload = { message: string };
 

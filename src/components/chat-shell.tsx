@@ -7,11 +7,18 @@ import { MessageInput } from "@/components/message-input";
 import { MessageList } from "@/components/message-list";
 import { disconnectSocket, getSocket } from "@/lib/chat/socket-client";
 import { SOCKET_EVENTS } from "@/lib/chat/socket-events";
-import type { BootstrapPayload, ChatErrorPayload, ChatMessage, NewMessagePayload } from "@/lib/chat/socket-events";
+import type { BootstrapPayload, ChatErrorPayload, ChatMessage, KickedPayload, NewMessagePayload } from "@/lib/chat/socket-events";
 import { TOPICS } from "@/lib/topics";
 
-export function ChatShell(props: { guestId: string; topic: string; onChangeTopic: () => void; onLogout: () => void }) {
+export function ChatShell(props: {
+  guestId: string;
+  guestLabel: string;
+  topic: string;
+  onChangeTopic: () => void;
+  onLogout: () => void;
+}) {
   const socket = useMemo(() => getSocket(), []);
+  const { guestId, guestLabel, topic, onLogout } = props;
   const [status, setStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +46,7 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
     const onConnect = () => {
       setStatus("connected");
       setError(null);
-      socket.emit(SOCKET_EVENTS.join, { guestId: props.guestId, topic: props.topic });
+      socket.emit(SOCKET_EVENTS.join, { guestId, guestLabel, topic });
     };
 
     const onDisconnect = () => setStatus("disconnected");
@@ -50,7 +57,7 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
 
     const onNewMessage = (payload: NewMessagePayload) => {
       const msg = payload.message;
-      if (msg.topic !== props.topic) return;
+      if (msg.topic !== topic) return;
       const shouldStick = isNearBottom();
       setMessages((prev) => {
         const next = [...prev, msg];
@@ -63,11 +70,18 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
       setError(payload.message);
     };
 
+    const onKicked = (payload: KickedPayload) => {
+      setError(payload.message);
+      disconnectSocket();
+      onLogout();
+    };
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on(SOCKET_EVENTS.bootstrap, onBootstrap);
     socket.on(SOCKET_EVENTS.newMessage, onNewMessage);
     socket.on(SOCKET_EVENTS.error, onError);
+    socket.on(SOCKET_EVENTS.kicked, onKicked);
 
     if (socket.connected) onConnect();
 
@@ -79,8 +93,9 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
       socket.off(SOCKET_EVENTS.bootstrap, onBootstrap);
       socket.off(SOCKET_EVENTS.newMessage, onNewMessage);
       socket.off(SOCKET_EVENTS.error, onError);
+      socket.off(SOCKET_EVENTS.kicked, onKicked);
     };
-  }, [props.guestId, props.topic, socket]);
+  }, [guestId, guestLabel, topic, onLogout, socket]);
 
   useEffect(() => {
     // On first load (bootstrap), scroll to bottom once messages are rendered.
@@ -96,7 +111,7 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
             <div className="truncate text-sm font-semibold">
               {TOPICS.find((t) => t.slug === props.topic)?.name ?? "Chat"}
             </div>
-            <div className="truncate text-xs text-white/60">You are {props.guestId}</div>
+            <div className="truncate text-xs text-white/60">You are {props.guestLabel}</div>
           </div>
           <div className="flex items-center gap-2">
             <ConnectionStatus status={status} />
@@ -139,7 +154,7 @@ export function ChatShell(props: { guestId: string; topic: string; onChangeTopic
             disabled={status !== "connected"}
             onSend={(text) => {
               setError(null);
-              socket?.emit(SOCKET_EVENTS.sendMessage, { guestId: props.guestId, topic: props.topic, text });
+              socket?.emit(SOCKET_EVENTS.sendMessage, { guestId, guestLabel, topic, text });
             }}
           />
         </div>
